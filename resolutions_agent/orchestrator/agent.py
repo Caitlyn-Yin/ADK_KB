@@ -1,20 +1,16 @@
-"""Agent to test out RAG engine to retrieve instructions from files."""
+"""Sequential agent for the resoltuons agent."""
 
-import os
+from google.adk.agents import SequentialAgent
+from order_resolution.agent import order_resolver
 
-from google.adk.agents import Agent
-from tools.tools import get_intent_resolution_instructions
+from resolutions_agent.agent import resolutions_agent
 
-from utils import read_instructions_from_file
-
-description = """The main coordinator agent. Handles user intent classification
-and retrieves relevant step-by-step instructions to solve users problem based
-on the user's classified intent."""
-
-root_agent = Agent(
-    name='ask_rag_agent',
-    model=os.environ.get('GOOGLE_CLOUD_LLM_NAME', ''),
-    description=description,
-    instruction=read_instructions_from_file('./orchestrator/instructions.md'),
-    tools=[get_intent_resolution_instructions],
+code_pipeline_agent = SequentialAgent(
+    name='ResolutionsPipelineAgent',
+    sub_agents=[resolutions_agent, order_resolver],
+    description="""Identifies user intent and resolves issues by retrieving
+        instructions and handling order-related requests.""",
 )
+
+# For ADK tools compatibility, the root agent must be named `root_agent`
+root_agent = code_pipeline_agent
